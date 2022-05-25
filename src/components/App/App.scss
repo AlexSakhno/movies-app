@@ -1,0 +1,19 @@
+.container {
+	max-width: 1024px;
+	min-height: 100vh;
+	margin: 0 auto;
+	position: relative;
+
+	background-color: #fff;
+
+	padding: 13px 36px;
+
+	.ant-tabs-nav {
+		width: 120px;
+		margin: auto;
+	}
+
+	.tabs-nav .ant-tabs-nav-wrap:before {
+		width: 64px;
+	}
+}
