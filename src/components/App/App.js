@@ -1,5 +1,5 @@
 import { Tabs } from 'antd'
-import { useEffect, useState } from 'react'
+import React from 'react'
 
 import SearchPanel from '../SearchPanel/SearchPanel'
 import Content from '../Content/Content'
@@ -8,59 +8,51 @@ import MovieService from '../../service/movie-service'
 
 import './App.scss'
 
-const { TabPane } = Tabs
+export default class App extends React.Component {
+	moviesService = new MovieService()
 
-const moviesService = new MovieService()
+	state = {
+		data: [],
+		ratedData: [],
+		currentSearch: '',
+		currentPageSearch: 1,
+		currentPageRated: 1,
+		totalResultsSearch: 0,
+		totalResultsRated: 0,
+		loading: false,
+		loadingError: false,
+		totalPage: 0,
+		sessionID: null,
+		genresList: [],
+	}
 
-export default function App() {
-	const [dataMovies, setData] = useState(() => {
-		return {
-			data: [],
-			ratedData: [],
-			currentSearch: '',
-			currentPageSearch: 1,
-			currentPageRated: 1,
-			totalResultsSearch: 0,
-			totalResultsRated: 0,
-			loading: false,
-			loadingError: false,
-			totalPage: 0,
-			sessionID: null,
-			genresList: [],
-		}
-	})
+	componentDidMount() {
+		const { getGuestSession, getGenresList } = this.moviesService
+		getGuestSession().then(sessionID => this.setState({ sessionID }))
+		getGenresList().then(list => this.setState({ genresList: list.genresList }))
+	}
 
-	// useEffect(() => {
-	// 	async function questSession() {
-	// 		const res = await moviesService.getGuestSession()
-	// 		setData(() => ({ ...dataMovies, sessionID: res }))
-	// 	}
-	// 	questSession()
-	// }, [])
-
-	const getMoviesBase = async (key, page, rated, sessionId) => {
+	getMoviesBase = async (key, page, rated, sessionId) => {
 		if (key === '' && !rated) {
-			setData({
-				...dataMovies,
+			this.setState({
 				data: [],
 				currentSearch: '',
 				totalResultsSearch: 0,
 				loading: false,
 			})
+			return
 		}
 
 		try {
-			const { getMovies, getGenresList, getGuestSession } = moviesService
+			const { getMovies } = this.moviesService
 
-			setData({ ...dataMovies, loading: true, errorLoading: false })
+			this.setState({ loading: true, loadingError: false })
 
 			const res = await getMovies(key, page, rated, sessionId)
-			const resGenres = await getGenresList()
-			const resGuest = await getGuestSession()
 
-			const { data, currentPage, totalResults, totalPage } = res
+			const { data, currentPage, totalResults } = res
 
-			setData(prevState => ({
+			this.setState(prevState => ({
 				data: rated ? prevState.data : data,
 				ratedData: rated ? data : prevState.ratedData,
 				loading: false,
@@ -68,91 +60,90 @@ export default function App() {
 				currentPageSearch: rated ? prevState.currentPageSearch : currentPage,
 				currentPageRated: rated ? currentPage : prevState.currentPageRated,
 				totalResultsSearch: rated ? prevState.totalResultsSearch : totalResults,
-				totalPage: rated ? prevState.totalPage : totalPage,
-				genresList: resGenres.genresList,
-				sessionID: resGuest,
 			}))
 		} catch (err) {
-			setData({ ...dataMovies, loading: false, errorLoading: true })
+			this.setState({ loadingError: true, loading: false })
 		}
 	}
 
-	const refreshRated = async () => {
-		const { getMovies } = moviesService
-		const { sessionID, currentPageRated } = dataMovies
+	refreshRated = async () => {
+		const { getMovies } = this.moviesService
+		const { sessionID, currentPageRated } = this.state
 		const ratedData = await getMovies(null, currentPageRated, true, sessionID)
 
-		setData({
-			...dataMovies,
+		this.setState({
 			ratedData: ratedData.data,
 			totalResultsRated: ratedData.totalResults,
 		})
 	}
 
-	const changePageSearch = page => {
-		const { currentSearch } = dataMovies
-		getMoviesBase(currentSearch, page)
+	changePageSearch = page => {
+		const { currentSearch } = this.state
+		this.getMoviesBase(currentSearch, page)
 	}
 
-	const changePageRated = page => {
-		const { sessionID } = dataMovies
-		getMoviesBase(null, page, true, sessionID)
+	changePageRated = page => {
+		const { sessionID } = this.state
+		this.getMoviesBase(null, page, true, sessionID)
 	}
 
-	const {
-		data,
-		ratedData,
-		currentPageSearch,
-		currentPageRated,
-		totalResultsSearch,
-		totalResultsRated,
-		...params
-	} = dataMovies
+	render() {
+		const { TabPane } = Tabs
+		const {
+			data,
+			ratedData,
+			currentPageSearch,
+			currentPageRated,
+			totalResultsSearch,
+			totalResultsRated,
+			...params
+		} = this.state
 
-	const checkRatedData = [...data]
-	checkRatedData.forEach(searchEl => {
-		ratedData.forEach(el => {
-			if (searchEl.id === el.id) {
-				searchEl.userRate = el.userRate
-			}
-		})
-	})
-
-	return (
-		<div className='container'>
-			<Tabs
-				defaultActiveKey='search'
-				onChange={() =>
-					setTimeout(
-						() => moviesService.cutOverView('.movie-item__overview'),
-						100
-					)
+		const checkRatedData = [...data]
+		checkRatedData.forEach(searchEl => {
+			ratedData.forEach(el => {
+				if (searchEl.id === el.id) {
+					searchEl.userRate = el.userRate
 				}
-				centered
-			>
-				<TabPane tab='Search' key='search'>
-					<SearchPanel searchData={getMoviesBase} />
-					<Content
-						search
-						refreshRated={refreshRated}
-						data={checkRatedData}
-						totalResults={totalResultsSearch}
-						currentPage={currentPageSearch}
-						changePage={changePageSearch}
-						{...params}
-					/>
-				</TabPane>
-				<TabPane tab='Rated' key='rated'>
-					<Content
-						refreshRated={refreshRated}
-						data={ratedData}
-						totalResults={totalResultsRated}
-						currentPage={currentPageRated}
-						changePage={changePageRated}
-						{...params}
-					/>
-				</TabPane>
-			</Tabs>
-		</div>
-	)
+			})
+		})
+
+		return (
+			<div className='container'>
+				<Tabs
+					defaultActiveKey='search'
+					onChange={() =>
+						setTimeout(
+							() => this.moviesService.cutOverView('.movie-item__overview'),
+							100
+						)
+					}
+					centered
+				>
+					<TabPane tab='Search' key='search'>
+						<SearchPanel searchData={this.getMoviesBase} />
+						<Content
+							search
+							refreshRated={this.refreshRated}
+							data={checkRatedData}
+							totalResults={totalResultsSearch}
+							currentPage={currentPageSearch}
+							changePage={this.changePageSearch}
+							{...params}
+						/>
+					</TabPane>
+					<TabPane tab='Rated' key='rated'>
+						<Content
+							refreshRated={this.refreshRated}
+							data={ratedData}
+							totalResults={totalResultsRated}
+							currentPage={currentPageRated}
+							changePage={this.changePageRated}
+							{...params}
+						/>
+					</TabPane>
+				</Tabs>
+			</div>
+		)
+	}
 }
