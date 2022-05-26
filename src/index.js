@@ -1,9 +1,12 @@
 import React from 'react'
-import ReactDOM from 'react-dom'
+import * as ReactDOMClient from 'react-dom/client'
 import 'antd/dist/antd.min.css'
 
 import './index.css'
 
 import App from './components/App/App'
 
-ReactDOM.render(<App />, document.getElementById('root'))
+const container = document.getElementById('root')
+const root = ReactDOMClient.createRoot(container)
+
+root.render(<App />)
