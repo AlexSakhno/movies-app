@@ -42,7 +42,7 @@ const MoviesList = props => {
 			showSizeChanger={false}
 		/>
 	)
-	console.log(totalResults)
+
 	const pagination = totalResults > 20 ? paginationShow : null
 
 	return (
