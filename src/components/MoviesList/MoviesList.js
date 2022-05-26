@@ -5,13 +5,13 @@ import CardMovie from '../CardMovie/CardMovie'
 import MovieService from '../../service/movie-service'
 
 import './MoviesList.scss'
+
 import { useEffect } from 'react'
 
 const moviesService = new MovieService()
 
 const MoviesList = props => {
 	useEffect(() => moviesService.cutOverView('.movie-item__overview'), [])
-
 	const createList = data => {
 		const { sessionID, refreshRated, genresList } = props
 
