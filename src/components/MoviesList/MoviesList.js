@@ -2,18 +2,18 @@ import { Row, Col, Pagination } from 'antd'
 
 import CardMovie from '../CardMovie/CardMovie'
 
-import MovieService from '../../service/movie-service'
+import cutOverView from '../../service/cutOvweView'
 
 import './MoviesList.scss'
+import React from 'react'
 
-import { useEffect } from 'react'
+export default class MoviesList extends React.Component {
+	componentDidMount() {
+		cutOverView('.movie-item__overview')
+	}
 
-const moviesService = new MovieService()
-
-const MoviesList = props => {
-	useEffect(() => moviesService.cutOverView('.movie-item__overview'), [])
-	const createList = data => {
-		const { sessionID, refreshRated, genresList } = props
+	createList = data => {
+		const { sessionID, refreshRated, genresList } = this.props
 
 		return data.map(el => {
 			const { id } = el
@@ -31,26 +31,26 @@ const MoviesList = props => {
 		})
 	}
 
-	const { data, changePage, currentPage, totalResults } = props
-	const moviesList = createList(data)
-	const paginationShow = (
-		<Pagination
-			current={currentPage}
-			total={totalResults}
-			onChange={page => changePage(page)}
-			pageSize={20}
-			showSizeChanger={false}
-		/>
-	)
+	render() {
+		const { data, changePage, currentPage, totalResults } = this.props
+		const moviesList = this.createList(data)
+		const paginationShow = (
+			<Pagination
+				current={currentPage}
+				total={totalResults}
+				onChange={page => changePage(page)}
+				pageSize={20}
+				showSizeChanger={false}
+			/>
+		)
 
-	const pagination = totalResults > 20 ? paginationShow : null
+		const pagination = totalResults > 20 ? paginationShow : null
 
-	return (
-		<>
-			<Row gutter={[36, 36]}>{moviesList}</Row>
-			<div className='movie-list__pagination'>{pagination}</div>
-		</>
-	)
+		return (
+			<>
+				<Row gutter={[36, 36]}>{moviesList}</Row>
+				<div className='movie-list__pagination'>{pagination}</div>
+			</>
+		)
+	}
 }
-
-export default MoviesList

@@ -5,6 +5,7 @@ import SearchPanel from '../SearchPanel/SearchPanel'
 import Content from '../Content/Content'
 
 import MovieService from '../../service/movie-service'
+import cutOverView from '../../service/cutOvweView'
 
 import './App.scss'
 
@@ -112,12 +113,7 @@ export default class App extends React.Component {
 			<div className='container'>
 				<Tabs
 					defaultActiveKey='search'
-					onChange={() =>
-						setTimeout(
-							() => this.moviesService.cutOverView('.movie-item__overview'),
-							100
-						)
-					}
+					onChange={() => cutOverView('.movie-item__overview')}
 					centered
 				>
 					<TabPane tab='Search' key='search'>
