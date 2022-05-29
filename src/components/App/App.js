@@ -53,15 +53,19 @@ export default class App extends React.Component {
 
 			const { data, currentPage, totalResults } = res
 
-			this.setState(prevState => ({
-				data: rated ? prevState.data : data,
-				ratedData: rated ? data : prevState.ratedData,
-				loading: false,
-				currentSearch: rated ? prevState.currentSearch : key,
-				currentPageSearch: rated ? prevState.currentPageSearch : currentPage,
-				currentPageRated: rated ? currentPage : prevState.currentPageRated,
-				totalResultsSearch: rated ? prevState.totalResultsSearch : totalResults,
-			}))
+			setTimeout(() => {
+				this.setState(prevState => ({
+					data: rated ? prevState.data : data,
+					ratedData: rated ? data : prevState.ratedData,
+					loading: false,
+					currentSearch: rated ? prevState.currentSearch : key,
+					currentPageSearch: rated ? prevState.currentPageSearch : currentPage,
+					currentPageRated: rated ? currentPage : prevState.currentPageRated,
+					totalResultsSearch: rated
+						? prevState.totalResultsSearch
+						: totalResults,
+				}))
+			}, 100)
 		} catch (err) {
 			this.setState({ loadingError: true, loading: false })
 		}
